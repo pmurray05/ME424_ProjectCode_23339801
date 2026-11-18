@@ -39,6 +39,37 @@ fprintf("H_2 flow rate is %.4f kg/s \n\n", H2_dot);
 fprintf("Water vapour production rate is %.4f kg/s \n\n", H2o_dot);
 fprintf("and the heat production rate is %.4f kW \n\n", Heat_prod/1000);
 
+%%Liquid Cooled Model approach
+cool_Cp = 2840;   %%spec. heat capac. of coolant from tables (ethelyn-glycol)
+air_Cp = 1005;     %%spec. heat capac. of air from tables (ethelyn-glycol)
+T_oper = 80;      %5 operational temp of cells and hence, hot inlet of coolant
+T_ho = 70;        %%this is an ssumed value and can be changed
+T_ci = 15;        %% ambient air temp
+T_co = 40;        %%%this is assumed air temp outlet, can be changed
+
+Cool_dot = Heat_prod/((cool_Cp)*(T_oper-T_ho));
+HXair_dot = Heat_prod/((air_Cp)*(T_co - T_ci));
+
+%%% eps-NTU approach
+
+C_max = Cool_dot*cool_Cp;
+C_min = HXair_dot*air_Cp;
+C_r = C_min/C_max;
+q_max = C_min*(T_oper-T_ci);
+eps = Heat_prod/q_max;
+
+eps_ntu = @(NTU) 1 - exp(((1/C_r)*(NTU)^0.22) * (exp(-C_r*(NTU)^0.78)-1)) - eps;
+NTU = fzero(eps_ntu, [0.01,5]);
+UA = NTU*C_min;
+ref_U = 167;        %%U-value taken from (Mitkar (2025))
+A = UA/ref_U;        %%(m^2)
+Area_density = 651.67;    %%calculated from (Mitkar (2025));
+
+Front_A = A/Area_density;
+fprintf("Radiator frontal area is %.4f m^2\n\n", Front_A);
+
+
+
 
 
 
