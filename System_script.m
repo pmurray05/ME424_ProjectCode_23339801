@@ -69,6 +69,41 @@ Front_A = A/Area_density;
 fprintf("Radiator frontal area is %.4f m^2\n\n", Front_A);
 
 
+%%%% EC_HT system *********************************************************************************************
+
+spec_lat_wat = 2.26E06;    %spec. latent heat of evaporation of water
+inject_dot = Heat_prod/spec_lat_wat;
+
+cond_T = 90;      %%%(degree celcius) NOTE THIS IS ASSUMED TEMP. temperature of interest in EC-HT, recompression of cathode fluids prior to condensor increases T of fluids
+cond_P = 200;      %%%(kPa) this is the pressure of interest in EC-HT, recompression of cathode fluids prior to condensor to increase P and hence T of fluids by PV =RT
+%%fluids exiting the cell stack
+vap_exit = H2o_dot + inject_dot;
+dry_air = air_exit;
+%%caluclate partial pressure based off molar mass (daltons law)
+molar_water = 18.015;     %%molar mass of water
+molar_air = 28.97;        %%molar mass of air
+
+partial_water = (vap_exit/molar_water)/((vap_exit/molar_water)+(dry_air/molar_air)) %%molar fraction of water in total mix, s^-1 cancel, dimensional analysis on handwritten workings
+partial_pressure = cond_P*partial_water
+
+sat_t = 100;    %%saturation temp of water at the given partial pressure (Taken from tables)
+
+%%water wont all condense at 100 degrees exactly, thats only when it begins. so how do i work out ...
+%%     how much water has condensed as the exchanger cools the condenser?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
