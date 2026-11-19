@@ -27,6 +27,7 @@ H2o_dot = (9.34E-08)*(P_FC/V_c);     %%kg/s
 
 Heat_prod = P_FC*((1.25/V_c) - 1);     %%W
 
+fprintf("****************Fuel Cell Parameters********************\n\n");
 fprintf("For a required shaft power of: %.4f kW \n\n", P_max/1000);
 fprintf("With a motor efficiency of 90%% \n\n");
 fprintf("Fuel cell stack power output is %.4f kW \n\n", P_FC/1000);
@@ -66,6 +67,7 @@ A = UA/ref_U;        %%(m^2)
 Area_density = 651.67;    %%calculated from (Mitkar (2025));
 
 Front_A = A/Area_density;
+fprintf("***********Liquid Cooled System**************\n\n");
 fprintf("Radiator frontal area is %.4f m^2\n\n", Front_A);
 
 
@@ -74,8 +76,8 @@ fprintf("Radiator frontal area is %.4f m^2\n\n", Front_A);
 spec_lat_wat = 2.26E06;    %spec. latent heat of evaporation of water
 inject_dot = Heat_prod/spec_lat_wat;
 
-cond_T = 90;      %%%(degree celcius) NOTE THIS IS ASSUMED TEMP. temperature of interest in EC-HT, recompression of cathode fluids prior to condensor increases T of fluids
-cond_P = 200;      %%%(kPa) this is the pressure of interest in EC-HT, recompression of cathode fluids prior to condensor to increase P and hence T of fluids by PV =RT
+cond_T = 80;      %%%(degree celcius) NOTE THIS IS ASSUMED TEMP. temperature of interest in EC-HT, recompression of cathode fluids prior to condensor increases T of fluids
+cond_P = 248;      %%%(kPa) NOTE THIS IS ASSUMED PRESSURE.this is the pressure of interest in EC-HT, recompression of cathode fluids prior to condensor to increase P and hence T of fluids by PV =RT
 %%fluids exiting the cell stack
 vap_exit = H2o_dot + inject_dot;
 dry_air = air_exit;
@@ -83,28 +85,29 @@ dry_air = air_exit;
 molar_water = 18.015;     %%molar mass of water
 molar_air = 28.97;        %%molar mass of air
 
-partial_water = (vap_exit/molar_water)/((vap_exit/molar_water)+(dry_air/molar_air)) %%molar fraction of water in total mix, s^-1 cancel, dimensional analysis on handwritten workings
-partial_pressure = cond_P*partial_water
+partial_water = (vap_exit/molar_water)/((vap_exit/molar_water)+(dry_air/molar_air)); %%molar fraction of water in total mix, s^-1 cancel, dimensional analysis on handwritten workings
+partial_pressure = cond_P*partial_water;
 
 sat_t = 100;    %%saturation temp of water at the given partial pressure (Taken from tables)
 
-%%water wont all condense at 100 degrees exactly, thats only when it begins. so how do i work out ...
-%%     how much water has condensed as the exchanger cools the condenser?
+%%%@100 degrees celsius, water will begin to condense, from then on it will gradually condense changing the saturation temp with time due to changing percentage water in air,...
 
+%%Assumption is made to simplify the system here based on IE design
+%%Condensed water and gas leave at a common temp below 100 degrees celsuis equal to cond_T above.
+%%the remaining gas is saturated, (so that we can get a pressure for the gas at assumed temp from the tables)
 
+P_sat = 47.58;       %%saturation pressure of the uncondensed, (assumed)-saturated gas. (interpolated from tables)
 
+%%apply partial pressure law again
+partial_sat = P_sat/cond_P;
 
+%%from rough work in copy
+m_dot_w_exh = (((air_exit/molar_air)*(partial_sat))/((1/molar_water)-(partial_sat/molar_water)));
+m_dot_cond = (inject_dot + H2o_dot) - m_dot_w_exh;
 
-
-
-
-
-
-
-
-
-
-
+fprintf("***************Evaporative Cooled System*******************\n\n")
+fprintf("The rate of water recovery is %.4f kg/s\n", m_dot_cond);
+fprintf("This satisifes the required cell injection rate of %.4f kg/s calculated above\n\n", inject_dot);
 
 
 
