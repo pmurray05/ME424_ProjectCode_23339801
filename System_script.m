@@ -71,7 +71,7 @@ volume = A/Area_density;
 rad_depth = 0.2;      %%reasonable assumed depth of rad
 Front_A = volume/rad_depth;
 fprintf("***********Liquid Cooled System**************\n\n");
-fprintf("Radiator frontal area is %.4f m^2\n\n", Front_A);
+fprintf("Radiator Volume is %.4f m^2\n\n", volume);
 
 
 %%%% EC_HT system *********************************************************************************************
@@ -84,7 +84,7 @@ cond_T = 80;      %%%(degree celcius) NOTE THIS IS ASSUMED TEMP. temperature of 
 cond_P = 260;      %%%(kPa) NOTE THIS IS ASSUMED PRESSURE.this is the pressure of interest in EC-HT, recompression of cathode fluids prior to condensor to increase P and hence T of fluids by PV =RT
 
 %%fluids exiting the cell stack
-vap_exit = H2o_dot + inject_dot
+vap_exit = H2o_dot + inject_dot;
 dry_air = air_exit;
 
 %%caluclate partial pressure based off molar mass (daltons law)
@@ -127,11 +127,35 @@ q_dot = (vap_exit+dry_air)*(C_p)*(T_2s-(T_oper+273.15));                        
 q_dot_actual = q_dot/(Comp_eff);                                                  %%actual input power reqd
 T_2 = (q_dot_actual+(vap_exit+dry_air)*(T_oper)*C_p)/((vap_exit+dry_air)*C_p);    %%compressor outlet air temp
 
-fprintf("An 85%% efficient compressor requires %.4f W to supply the condensor as required\n\n", q_dot_actual);
+fprintf("An 85%% efficient compressor requires %.4f kW to proide adequate supply to the condensor\n\n", q_dot_actual);
 
 %%HEAT Exchanger sizing
 
-Q_dot_air =
+Q_dot_air =dry_air*(1005)*((T_2) - cond_T);       %%air cooling heat transfer rate
+Q_dot_vap= vap_exit*(1872.3)*((T_2) - cond_T);      %%uncondensed water vapour cooling transfer rate
+Q_dot_lat = m_dot_cond*(2.26E06);                  %%Heat transfer rate through latent heat in condensation of water
+
+Q_dot_tot =  Q_dot_air + Q_dot_vap + Q_dot_lat;       %%total heat transfer rate
+
+m_dot_air = Q_dot_tot/((1005)*(T_co-T_ci));           %%ambient air required in exchanger
+
+%%%LMPT method to find HEX size
+delta_T1 = cond_T-15;
+delta_T2 = cond_T-40;
+
+delta_T_lm = (delta_T1-delta_T2)/(log(delta_T1/delta_T2));  %%LMPT method to find delta_T_lm
+
+UA2 = Q_dot_tot/delta_T_lm;
+
+%%find effective area A using same U and area density from before
+
+A = UA2/ref_U;
+Volume = A/Area_density;
+
+
+
+
+
 
 
 
