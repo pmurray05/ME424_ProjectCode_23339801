@@ -172,14 +172,48 @@ hold on;
 plot(U_var, Volume, "-o");
 yline(volume, "--r");
 hold off;
-text(250, volume+0.05, "LC system Heat Exchanger Volume", "color", "r", "fontsize", 16)
+text(250, volume+0.05, "LC System Heat Exchanger", "color", "r", "fontsize", 16)
 grid on;
 set(gca, "fontsize", 15);
 xlabel("Overall Heat Transfer Coefficient (U) (W/m^2K)", "fontsize", 18);
 ylabel("Heat Exchanger Volume (m^3)", "fontsize", 18);
+legend("EC System Heat Exchanger");
 
 
+%%plotting relationship between water recovery and increased compresser pressure
+%%also plot the increased power demand with increased pressure
 
+p_var = [200, 220, 240, 260, 280, 300, 320, 340, 360, 380, 400];
 
+for i=1:length(p_var)
+  P = p_var(i);
+  frac_sat = P_sat/P;
+  m_dot_vap_var = (((air_exit/molar_air)*(frac_sat))/((1/molar_water)-(frac_sat/molar_water)));
+  m_dot_cond_var(i) = vap_exit - m_dot_vap_var;
+end
+figure;
+plot(p_var, m_dot_cond_var, "-o")
+grid on;
+set(gca, "fontsize", 15);
+xlabel("Condenser Inlet Pressure (kPa)", "fontsize", 18);
+ylabel("Water Recovery Rate (kg/s)", "fontsize", 18);
 
+p_var = [200, 220, 240, 260, 280, 300, 320, 340, 360, 380, 400];
+
+for i=1:length(p_var)
+  P = p_var(i);
+  gamma = 1.33;
+  C_p = 1.8723;
+  Comp_eff = 0.85;
+  T_2s = (273.15+T_oper)*(P/P_ISA)^((gamma-1)/gamma);
+
+  q_dot = (vap_exit+dry_air)*(C_p)*(T_2s-(T_oper+273.15));
+  q_dot_actual_var(i) = q_dot/(Comp_eff);
+end
+figure;
+plot(p_var, q_dot_actual_var, "-o")
+grid on;
+set(gca, "fontsize", 15);
+xlabel("Condenser Inlet Pressure (kPa)", "fontsize", 18);
+ylabel("Compressor Power Demand (kW)", "fontsize", 18);
 
