@@ -71,7 +71,9 @@ volume = A/Area_density;
 rad_depth = 0.2;      %%reasonable assumed depth of rad
 Front_A = volume/rad_depth;
 fprintf("***********Liquid Cooled System**************\n\n");
-fprintf("Radiator Volume is %.4f m^2\n\n", volume);
+fprintf("The required coolant flow rate is %.4f kg/s \n\n", Cool_dot);
+fprintf("The required ambient air flow rate is %.4f kg/s \n\n", HXair_dot);
+fprintf("Heat Exchanger Volume is %.4f m^3\n\n", volume);
 
 
 %%%% EC_HT system *********************************************************************************************
@@ -79,9 +81,11 @@ fprintf("Radiator Volume is %.4f m^2\n\n", volume);
 spec_lat_wat = 2.26E06;    %spec. latent heat of evaporation of water
 inject_dot = Heat_prod/spec_lat_wat;
 
+
 %%%condenser calculations. condeser takes the dry air and water valpour mix and cools it in exchanger such that water may be condesed for recirculation
 cond_T = 80;      %%%(degree celcius) NOTE THIS IS ASSUMED TEMP. temperature of interest in EC-HT, recompression of cathode fluids prior to condensor increases T of fluids
 cond_P = 260;      %%%(kPa) NOTE THIS IS ASSUMED PRESSURE.this is the pressure of interest in EC-HT, recompression of cathode fluids prior to condensor to increase P and hence T of fluids by PV =RT
+P_sat = 47.416;       %%saturation pressure of the uncondensed, (assumed)-saturated gas. (interpolated from tables)
 
 %%fluids exiting the cell stack
 vap_exit = H2o_dot + inject_dot;
@@ -102,7 +106,7 @@ sat_t = 128;    %%approx saturation temp of water at the given partial pressure 
 %%Condensed water and gas leave at a common temp below 100 degrees celsuis equal to cond_T above.
 %%the remaining gas is saturated, (so that we can get a pressure for the gas at assumed temp from the tables)
 
-P_sat = 47.58;       %%saturation pressure of the uncondensed, (assumed)-saturated gas. (interpolated from tables)
+
 
 %%apply partial pressure law again
 partial_sat = P_sat/cond_P;
@@ -112,6 +116,8 @@ m_dot_w_exh = (((air_exit/molar_air)*(partial_sat))/((1/molar_water)-(partial_sa
 m_dot_cond = (inject_dot + H2o_dot) - m_dot_w_exh;          %%condensed water must be total water less exhausted water
 
 fprintf("***************Evaporative Cooled System*******************\n\n")
+fprintf("The mass flow rate of water injection required in the cell stack is %.4f kg/s \n\n", inject_dot);
+
 fprintf("The rate of water recovery is %.4f kg/s\n", m_dot_cond);
 fprintf("This satisifes the required cell injection rate of %.4f kg/s calculated above\n\n", inject_dot);
 
@@ -127,7 +133,9 @@ q_dot = (vap_exit+dry_air)*(C_p)*(T_2s-(T_oper+273.15));                        
 q_dot_actual = q_dot/(Comp_eff);                                                  %%actual input power reqd
 T_2 = (q_dot_actual+(vap_exit+dry_air)*(T_oper)*C_p)/((vap_exit+dry_air)*C_p);    %%compressor outlet air temp
 
+
 fprintf("An 85%% efficient compressor requires %.4f kW to proide adequate supply to the condensor\n\n", q_dot_actual);
+fprintf("The air exiting the compressor is at a temperature of %.4f degree celsius \n\n", T_2);
 
 %%HEAT Exchanger sizing
 
@@ -152,7 +160,23 @@ UA2 = Q_dot_tot/delta_T_lm;
 A = UA2/ref_U;
 Volume = A/Area_density;
 
+fprintf("Heat Exchanger Volume is %.4f m^3\n\n", Volume);
 
+%%find effective area A using variable U, and same area density from before
+U_var = [50, 100, 150, 200, 250, 300];
+A = UA2 ./ U_var;
+Volume = A ./ Area_density;
+
+figure;
+hold on;
+plot(U_var, Volume, "-o");
+yline(volume, "--r");
+hold off;
+text(250, volume+0.05, "LC system Heat Exchanger Volume", "color", "r", "fontsize", 16)
+grid on;
+set(gca, "fontsize", 15);
+xlabel("Overall Heat Transfer Coefficient (U) (W/m^2K)", "fontsize", 18);
+ylabel("Heat Exchanger Volume (m^3)", "fontsize", 18);
 
 
 
