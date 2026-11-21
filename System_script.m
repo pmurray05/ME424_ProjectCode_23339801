@@ -137,6 +137,20 @@ T_2 = (q_dot_actual+(vap_exit+dry_air)*(T_oper)*C_p)/((vap_exit+dry_air)*C_p);  
 fprintf("An 85%% efficient compressor requires %.4f kW to proide adequate supply to the condensor\n\n", q_dot_actual);
 fprintf("The air exiting the compressor is at a temperature of %.4f degree celsius \n\n", T_2);
 
+%%Turbine CAlculatiosn
+gamma = 1.33;     %%gamma of steam from tables is assumed
+C_p = 1.8723;     %%spec. heat of steam from tables is assumed
+Turb_eff = 0.85;    %%Turbine efficiency of 85% assumed
+T_2s = (273.15+cond_T)*(P_ISA/cond_P)^((gamma-1)/gamma);
+
+q_dot = ((air_exit+H2o_dot+inject_dot)-m_dot_cond)*(C_p)*((273.15+cond_T)-(T_2s));        %%isentropic power reqd
+q_dot_actual2 = q_dot*(Turb_eff);      %%actual input power reqd
+fprintf("An 85%% efficient turbine provides a %.4f kW power output\n\n", q_dot_actual2);
+
+%%net power requirment of turbine and compressor system
+P_net = q_dot_actual-q_dot_actual2;
+fprintf("The net power requirement of the turbine-compresser system is %.2f kW \n\n", P_net);
+
 %%HEAT Exchanger sizing
 
 Q_dot_air =dry_air*(1005)*((T_2) - cond_T);       %%air cooling heat transfer rate
@@ -156,7 +170,7 @@ delta_T_lm = (delta_T1-delta_T2)/(log(delta_T1/delta_T2));  %%LMPT method to fin
 UA2 = Q_dot_tot/delta_T_lm;
 
 %%find effective area A using same U and area density from before
-
+ref_U = 337.5;    %%%Value taken from NASA Report
 A = UA2/ref_U;
 Volume = A/Area_density;
 
